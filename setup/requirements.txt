@@ -1,0 +1,2 @@
+matplotlib
+gensim==3.8.0
