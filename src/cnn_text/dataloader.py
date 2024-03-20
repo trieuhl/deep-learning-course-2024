@@ -38,8 +38,8 @@ def read_data(samples_num=100):
 
 
 class Loader():
-    def __init__(self, embed_lookup, seq_length=200, batch_size=50, split_frac=0.8):
-        self.embed_lookup = embed_lookup
+    def __init__(self, embed_model, seq_length=200, batch_size=50, split_frac=0.8):
+        self.embed_model = embed_model
 
         self.seq_length = seq_length
         self.batch_size = batch_size
@@ -64,7 +64,7 @@ class Loader():
         return reviews_split, encoded_labels
 
     # convert reviews to tokens
-    def tokenize_all_reviews(self, embed_lookup, reviews_split):
+    def tokenize_all_reviews(self, embed_model, reviews_split):
         # split each review into a list of words
         reviews_words = [review.split() for review in reviews_split]
 
@@ -73,7 +73,7 @@ class Loader():
             ints = []
             for word in review:
                 try:
-                    idx = embed_lookup.vocab[word].index
+                    idx = embed_model.vocab[word].index
                 except:
                     idx = 0
                 ints.append(idx)
@@ -83,7 +83,7 @@ class Loader():
 
     def pad_features(self, reviews_split):
         # tokenize
-        tokenized_reviews = self.tokenize_all_reviews(self.embed_lookup, reviews_split)
+        tokenized_reviews = self.tokenize_all_reviews(self.embed_model, reviews_split)
 
         # get features
         features = np.zeros((len(tokenized_reviews), self.seq_length), dtype=int)

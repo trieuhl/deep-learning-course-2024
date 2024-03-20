@@ -3,10 +3,11 @@ from torch import nn
 
 
 class SentimentCNN(nn.Module):
-    def __init__(self, vocab_size, embedding_dim, num_filters, kernel_sizes, output_size, drop_prob):
+    def __init__(self, embed_model, vocab_size, embedding_dim, num_filters, kernel_sizes, output_size, drop_prob):
         super(SentimentCNN, self).__init__()
         # layers
         self.embedding_layer = nn.Embedding(vocab_size, embedding_dim)
+        self.embedding_layer.weight = nn.Parameter(torch.from_numpy(embed_model.vectors))  # all vectors
 
         # cnn
         self.convs_1d_layers = nn.ModuleList([

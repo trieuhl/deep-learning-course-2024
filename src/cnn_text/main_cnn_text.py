@@ -17,7 +17,7 @@ def main():
 
     # load data
     data_loader = Loader(
-        embed_lookup=w2v.embed_lookup,
+        embed_model=w2v.embed_model,
         batch_size=200,
         seq_length=10,
         split_frac=0.8
@@ -32,15 +32,16 @@ def main():
     embedding_dim = w2v.embedding_dim
 
     model = SentimentCNN(
+        embed_model=w2v.embed_model,
         vocab_size=vocab_size,
         embedding_dim=embedding_dim,
         num_filters=num_filters,
         kernel_sizes=kernel_sizes,
         output_size=1,
-        drop_prob=0.5
+        drop_prob=0.1
     )
 
-    learning_rate = 0.001
+    learning_rate = 0.01
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
