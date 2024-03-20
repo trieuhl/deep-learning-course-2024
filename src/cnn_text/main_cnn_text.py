@@ -1,4 +1,6 @@
 import torch
+from src.cnn_text.w2v_loader import W2VLoader
+from src.cnn_text.dataloader import read_data
 from src.cnn_text.dataloader import Loader
 from src.cnn_text.model import SentimentCNN
 from src.cnn_text.trainer import Trainer
@@ -6,19 +8,29 @@ from src.cnn_text.trainer import Trainer
 
 def main():
     # data
-    data_loader = Loader(
-        w2v_path='data/word2vec_model/GoogleNews-vectors-negative300.bin',
-        batch_size=200,
-        seq_length=10
-    )
-    vocab_size = data_loader.vocab_size
-    embedding_dim = data_loader.embedding_dim
+    reviews, labels = read_data(samples_num=1000)
 
-    train_loader, valid_loader, test_loader = data_loader.load()
+    # load word2vec
+    w2v = W2VLoader(
+        w2v_path='data/word2vec_model/GoogleNews-vectors-negative300.bin'
+    )
+
+    # load data
+    data_loader = Loader(
+        embed_lookup=w2v.embed_lookup,
+        batch_size=200,
+        seq_length=10,
+        split_frac=0.8
+    )
+
+    train_loader, valid_loader, test_loader = data_loader.load(reviews, labels)
 
     # model
     num_filters = 100
     kernel_sizes = [3, 4, 5]
+    vocab_size = w2v.vocab_size
+    embedding_dim = w2v.embedding_dim
+
     model = SentimentCNN(
         vocab_size=vocab_size,
         embedding_dim=embedding_dim,

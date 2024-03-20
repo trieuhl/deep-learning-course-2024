@@ -1,56 +1,51 @@
 import numpy as np
 from string import punctuation
-from gensim.models import KeyedVectors
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 
+
+def read_data(samples_num=100):
+    # read data from text files
+    with open('data/reviews/reviews.txt', 'r') as f:
+        reviews = f.read()
+    with open('data/reviews/labels.txt', 'r') as f:
+        labels = f.read()
+
+    # print some example review/sentiment text
+    print(reviews[:1000])
+    print()
+    print(labels[:20])
+
+    # get rid of punctuation
+    reviews = reviews.lower()  # lowercase, standardize
+    all_text = ''.join([c for c in reviews if c not in punctuation])
+
+    # split by new lines and spaces
+    reviews_split = all_text.split('\n')
+
+    # all_text = ' '.join(reviews_split)
+
+    # create a list of all words
+    # all_words = all_text.split()
+
+    # 1=positive, 0=negative label conversion
+    labels_split = labels.split('\n')
+    # debug
+    reviews_split = reviews_split[:samples_num]
+    labels_split = labels_split[:samples_num]
+
+    return reviews_split, labels_split
+
+
 class Loader():
-    def __init__(self, w2v_path='data/word2vec_model/GoogleNews-vectors-negative300.bin', seq_length=200, batch_size=50):
-        self.embed_lookup = KeyedVectors.load_word2vec_format(w2v_path, binary=True)
-        self.pretrained_words = self.get_pretrained_words()
-        self.vocab_size = len(self.pretrained_words)
-        self.embedding_dim = len(self.embed_lookup[self.pretrained_words[0]]) # 300-dim vectors
+    def __init__(self, embed_lookup, seq_length=200, batch_size=50, split_frac=0.8):
+        self.embed_lookup = embed_lookup
 
         self.seq_length = seq_length
         self.batch_size = batch_size
+        self.split_frac = split_frac
 
-    def get_pretrained_words(self):
-        # store pretrained vocab
-        pretrained_words = []
-        for word in self.embed_lookup.vocab:
-            pretrained_words.append(word)
-        return pretrained_words
-
-    def get_data(self):
-        # read data from text files
-        with open('data/reviews/reviews.txt', 'r') as f:
-            reviews = f.read()
-        with open('data/reviews/labels.txt', 'r') as f:
-            labels = f.read()
-
-        # print some example review/sentiment text
-        print(reviews[:1000])
-        print()
-        print(labels[:20])
-
-        # get rid of punctuation
-        reviews = reviews.lower()  # lowercase, standardize
-        all_text = ''.join([c for c in reviews if c not in punctuation])
-
-        # split by new lines and spaces
-        reviews_split = all_text.split('\n')
-
-        all_text = ' '.join(reviews_split)
-
-        # create a list of all words
-        all_words = all_text.split()
-
-        # 1=positive, 0=negative label conversion
-        labels_split = labels.split('\n')
-        # debug
-        reviews_split = reviews_split[:100]
-        labels_split = labels_split[:100]
-
+    def process_data(self, reviews_split, labels_split):
         encoded_labels = np.array([1 if label == 'positive' else 0 for label in labels_split])
 
         print('Number of reviews before removing outliers: ', len(reviews_split))
@@ -103,11 +98,9 @@ class Loader():
         return features
 
     def split(self, features, encoded_labels):
-        split_frac = 0.8
-
         ## split data into training, validation, and test data (features and labels, x and y)
 
-        split_idx = int(len(features) * split_frac)
+        split_idx = int(len(features) * self.split_frac)
         train_x, remaining_x = features[:split_idx], features[split_idx:]
         train_y, remaining_y = encoded_labels[:split_idx], encoded_labels[split_idx:]
 
@@ -136,19 +129,18 @@ class Loader():
         test_loader = DataLoader(test_data, shuffle=True, batch_size=self.batch_size)
         return train_loader, valid_loader, test_loader
 
-    def load(self):
-        reviews_split, encoded_labels = self.get_data()
+    def load(self, reviews, labels):
+        reviews_split, encoded_labels = self.process_data(reviews, labels)
         features = self.pad_features(reviews_split)
         train_x, train_y, val_x, val_y, test_x, test_y = self.split(features, encoded_labels)
         train_loader, valid_loader, test_loader = self.create_tensor(train_x, train_y, val_x, val_y, test_x, test_y)
 
         return train_loader, valid_loader, test_loader
 
-
-def main():
-    loader = Loader()
-    loader.load()
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     loader = Loader()
+#     loader.load(reviews, labels)
+#
+#
+# if __name__ == '__main__':
+#     main()
