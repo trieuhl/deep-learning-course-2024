@@ -28,7 +28,7 @@ def main():
         drop_prob=0.5
     )
 
-    learning_rate = 0.005
+    learning_rate = 0.001
     criterion = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 

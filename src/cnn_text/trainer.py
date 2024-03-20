@@ -44,7 +44,7 @@ class Trainer():
             pred_class = torch.round(pred.squeeze())  # rounds to the nearest integer
 
             # loss
-            loss = self.criterion(pred, target)
+            loss = self.criterion(pred.squeeze(), target.float())
             total_loss += loss.item()
 
             # accuracy

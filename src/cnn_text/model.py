@@ -30,7 +30,7 @@ class SentimentCNN(nn.Module):
 
         # 1D pool over conv_seq_length
         # squeeze to get size: (batch_size, num_filters)
-        x_max = torch.nn.MaxPool1d(x, x.size(2)).squeeze(2)
+        x_max = torch.nn.functional.max_pool1d(x, x.size(2)).squeeze(2)
         return x_max
 
     def forward(self, x):
